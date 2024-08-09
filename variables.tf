@@ -4,6 +4,20 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "hcloud_robot_user" {
+  description = "Hetzner Robot User."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "hcloud_robot_password" {
+  description = "Hetzner Robot Password."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "k3s_token" {
   description = "k3s master token (must match when restoring a cluster)."
   type        = string
@@ -74,6 +88,19 @@ variable "network_region" {
   type        = string
   default     = "eu-central"
 }
+
+variable "vswitch_id" {
+  description = "vSwitch to connect to cloud."
+  type        = string
+  default     = null
+}
+
+variable "server_numbers" {
+  type = list(number)
+  description = "List of Hetzner server numbers"
+  default = []
+}
+
 variable "existing_network_id" {
   # Unfortunately, we need this to be a list or null. If we only use a plain
   # string here, and check that existing_network_id is null, terraform will
@@ -347,7 +374,7 @@ variable "autoscaler_taints" {
 
 variable "hetzner_ccm_version" {
   type        = string
-  default     = null
+  default     = ""
   description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
 }
 
@@ -679,6 +706,12 @@ variable "cilium_routing_mode" {
   }
 }
 
+variable "ccm_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to hcloud-cloud-controller-manager as 'valuesContent' at the HelmChart."
+}
+
 variable "cilium_values" {
   type        = string
   default     = ""
@@ -687,7 +720,7 @@ variable "cilium_values" {
 
 variable "cilium_version" {
   type        = string
-  default     = "1.15.1"
+  default     = "1.15.7"
   description = "Version of Cilium."
 }
 
