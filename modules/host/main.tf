@@ -22,8 +22,8 @@ resource "random_string" "identity_file" {
 variable "network" {
   type = object({
     network_id = number
-    ip = string
-    alias_ips = list(string)
+    ip         = string
+    alias_ips  = list(string)
   })
   default = null
 }
@@ -43,13 +43,13 @@ resource "hcloud_server" "server" {
     ipv4_enabled = !var.disable_ipv4
     ipv6_enabled = !var.disable_ipv6
   }
-  
+
   dynamic "network" {
     for_each = var.network_id > 0 ? [""] : []
     content {
       network_id = var.network_id
-      ip = var.private_ipv4
-      alias_ips = []
+      ip         = var.private_ipv4
+      alias_ips  = []
     }
   }
 
