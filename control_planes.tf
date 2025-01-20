@@ -93,7 +93,7 @@ locals {
       v.private_ipv4_address
     )
   }
-  
+
   k3s-config = { for k, v in local.control_plane_nodes : k => merge(
     {
       node-name = module.control_planes[k].name
