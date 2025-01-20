@@ -4,22 +4,22 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
-| <a name="requirement_github"></a> [github](#requirement\_github) | >= 5.44.0 |
-| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.43.0 |
-| <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.4.0 |
-| <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.1.2 |
+| <a name="requirement_github"></a> [github](#requirement\_github) | >= 6.4.0 |
+| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.49.1 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.5.2 |
+| <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.1.3 |
 
 ### Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_github"></a> [github](#provider\_github) | >= 5.44.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.43.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | >= 2.4.0 |
+| <a name="provider_github"></a> [github](#provider\_github) | >= 6.4.0 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.49.1 |
+| <a name="provider_local"></a> [local](#provider\_local) | >= 2.5.2 |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
-| <a name="provider_remote"></a> [remote](#provider\_remote) | >= 0.1.2 |
+| <a name="provider_remote"></a> [remote](#provider\_remote) | >= 0.1.3 |
 
 ### Modules
 
@@ -47,6 +47,7 @@
 | [hcloud_placement_group.agent_named](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
 | [hcloud_placement_group.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
 | [hcloud_placement_group.control_plane_named](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
+| [hcloud_rdns.agents](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/rdns) | resource |
 | [hcloud_ssh_key.k3s](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/ssh_key) | resource |
 | [hcloud_volume.longhorn_volume](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/volume) | resource |
 | [local_file.cert_manager_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -93,7 +94,7 @@
 | <a name="input_additional_k3s_environment"></a> [additional\_k3s\_environment](#input\_additional\_k3s\_environment) | Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . | `map(any)` | `{}` | no |
 | <a name="input_additional_tls_sans"></a> [additional\_tls\_sans](#input\_additional\_tls\_sans) | Additional TLS SANs to allow connection to control-plane through it. | `list(string)` | `[]` | no |
 | <a name="input_address_for_connectivity_test"></a> [address\_for\_connectivity\_test](#input\_address\_for\_connectivity\_test) | Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity). | `string` | `"1.1.1.1"` | no |
-| <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | <pre>list(object({<br/>    name                       = string<br/>    server_type                = string<br/>    location                   = string<br/>    backups                    = optional(bool)<br/>    floating_ip                = optional(bool)<br/>    labels                     = list(string)<br/>    taints                     = list(string)<br/>    longhorn_volume_size       = optional(number)<br/>    swap_size                  = optional(string, "")<br/>    zram_size                  = optional(string, "")<br/>    kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>    selinux                    = optional(bool, true)<br/>    placement_group_compat_idx = optional(number, 0)<br/>    placement_group            = optional(string, null)<br/>    count                      = optional(number, null)<br/>    nodes = optional(map(object({<br/>      server_type                = optional(string)<br/>      location                   = optional(string)<br/>      backups                    = optional(bool)<br/>      floating_ip                = optional(bool)<br/>      labels                     = optional(list(string))<br/>      taints                     = optional(list(string))<br/>      longhorn_volume_size       = optional(number)<br/>      swap_size                  = optional(string, "")<br/>      zram_size                  = optional(string, "")<br/>      kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>      selinux                    = optional(bool, true)<br/>      placement_group_compat_idx = optional(number, 0)<br/>      placement_group            = optional(string, null)<br/>      append_index_to_node_name  = optional(bool, true)<br/>    })))<br/>  }))</pre> | `[]` | no |
+| <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | <pre>list(object({<br/>    name                       = string<br/>    server_type                = string<br/>    location                   = string<br/>    backups                    = optional(bool)<br/>    floating_ip                = optional(bool)<br/>    floating_ip_rdns           = optional(string, null)<br/>    labels                     = list(string)<br/>    taints                     = list(string)<br/>    longhorn_volume_size       = optional(number)<br/>    swap_size                  = optional(string, "")<br/>    zram_size                  = optional(string, "")<br/>    kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>    selinux                    = optional(bool, true)<br/>    placement_group_compat_idx = optional(number, 0)<br/>    placement_group            = optional(string, null)<br/>    count                      = optional(number, null)<br/>    nodes = optional(map(object({<br/>      server_type                = optional(string)<br/>      location                   = optional(string)<br/>      backups                    = optional(bool)<br/>      floating_ip                = optional(bool)<br/>      floating_ip_rdns           = optional(string, null)<br/>      labels                     = optional(list(string))<br/>      taints                     = optional(list(string))<br/>      longhorn_volume_size       = optional(number)<br/>      swap_size                  = optional(string, "")<br/>      zram_size                  = optional(string, "")<br/>      kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>      selinux                    = optional(bool, true)<br/>      placement_group_compat_idx = optional(number, 0)<br/>      placement_group            = optional(string, null)<br/>      append_index_to_node_name  = optional(bool, true)<br/>    })))<br/>  }))</pre> | `[]` | no |
 | <a name="input_agent_nodes_custom_config"></a> [agent\_nodes\_custom\_config](#input\_agent\_nodes\_custom\_config) | Custom agent nodes configuration. | `any` | `{}` | no |
 | <a name="input_allow_scheduling_on_control_plane"></a> [allow\_scheduling\_on\_control\_plane](#input\_allow\_scheduling\_on\_control\_plane) | Whether to allow non-control-plane workloads to run on the control-plane nodes. | `bool` | `false` | no |
 | <a name="input_authentication_config"></a> [authentication\_config](#input\_authentication\_config) | Strucutred authentication configuration. This can be used to define external authentication providers. | `string` | `""` | no |
@@ -146,7 +147,7 @@
 | <a name="input_enable_delete_protection"></a> [enable\_delete\_protection](#input\_enable\_delete\_protection) | Enable or disable delete protection for resources in Hetzner Cloud. | <pre>object({<br/>    floating_ip   = optional(bool, false)<br/>    load_balancer = optional(bool, false)<br/>    volume        = optional(bool, false)<br/>  })</pre> | <pre>{<br/>  "floating_ip": false,<br/>  "load_balancer": false,<br/>  "volume": false<br/>}</pre> | no |
 | <a name="input_enable_iscsid"></a> [enable\_iscsid](#input\_enable\_iscsid) | This is always true when enable\_longhorn=true, however, you may also want this enabled if you perform your own installation of longhorn after this module runs. | `bool` | `false` | no |
 | <a name="input_enable_klipper_metal_lb"></a> [enable\_klipper\_metal\_lb](#input\_enable\_klipper\_metal\_lb) | Use klipper load balancer. | `bool` | `false` | no |
-| <a name="input_enable_local_storage"></a> [enable\_local\_storage](#input\_enable\_local\_storage) | Whether to enable or disable k3s local-storage. | `bool` | `false` | no |
+| <a name="input_enable_local_storage"></a> [enable\_local\_storage](#input\_enable\_local\_storage) | Whether to enable or disable k3s local-storage. Warning: when enabled, there will be two default storage classes: "local-path" and "hcloud-volumes"! | `bool` | `false` | no |
 | <a name="input_enable_longhorn"></a> [enable\_longhorn](#input\_enable\_longhorn) | Whether or not to enable Longhorn. | `bool` | `false` | no |
 | <a name="input_enable_metrics_server"></a> [enable\_metrics\_server](#input\_enable\_metrics\_server) | Whether to enable or disable k3s metric server. | `bool` | `true` | no |
 | <a name="input_enable_rancher"></a> [enable\_rancher](#input\_enable\_rancher) | Enable rancher. | `bool` | `false` | no |
@@ -239,6 +240,7 @@
 | <a name="input_traefik_pod_disruption_budget"></a> [traefik\_pod\_disruption\_budget](#input\_traefik\_pod\_disruption\_budget) | Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1. | `bool` | `true` | no |
 | <a name="input_traefik_redirect_to_https"></a> [traefik\_redirect\_to\_https](#input\_traefik\_redirect\_to\_https) | Should traefik redirect http traffic to https. | `bool` | `true` | no |
 | <a name="input_traefik_resource_limits"></a> [traefik\_resource\_limits](#input\_traefik\_resource\_limits) | Should traefik enable default resource requests and limits. Default values are requests: 100m & 50Mi and limits: 300m & 150Mi. | `bool` | `true` | no |
+| <a name="input_traefik_resource_values"></a> [traefik\_resource\_values](#input\_traefik\_resource\_values) | Requests and limits for Traefik. | <pre>object({<br/>    requests = object({<br/>      cpu    = string<br/>      memory = string<br/>    })<br/>    limits = object({<br/>      cpu    = string<br/>      memory = string<br/>    })<br/>  })</pre> | <pre>{<br/>  "limits": {<br/>    "cpu": "300m",<br/>    "memory": "150Mi"<br/>  },<br/>  "requests": {<br/>    "cpu": "100m",<br/>    "memory": "50Mi"<br/>  }<br/>}</pre> | no |
 | <a name="input_traefik_values"></a> [traefik\_values](#input\_traefik\_values) | Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_traefik_version"></a> [traefik\_version](#input\_traefik\_version) | Version of Traefik helm chart. See https://github.com/traefik/traefik-helm-chart/releases for the available versions. | `string` | `""` | no |
 | <a name="input_use_cluster_name_in_node_name"></a> [use\_cluster\_name\_in\_node\_name](#input\_use\_cluster\_name\_in\_node\_name) | Whether to use the cluster name in the node name. | `bool` | `true` | no |
@@ -266,6 +268,8 @@
 | <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Kubeconfig file content with external IP address |
 | <a name="output_kubeconfig_data"></a> [kubeconfig\_data](#output\_kubeconfig\_data) | Structured kubeconfig data to supply to other providers |
 | <a name="output_kubeconfig_file"></a> [kubeconfig\_file](#output\_kubeconfig\_file) | Kubeconfig file content with external IP address |
+| <a name="output_lb_control_plane_ipv4"></a> [lb\_control\_plane\_ipv4](#output\_lb\_control\_plane\_ipv4) | The public IPv4 address of the Hetzner control plane load balancer |
+| <a name="output_lb_control_plane_ipv6"></a> [lb\_control\_plane\_ipv6](#output\_lb\_control\_plane\_ipv6) | The public IPv6 address of the Hetzner control plane load balancer |
 | <a name="output_longhorn_values"></a> [longhorn\_values](#output\_longhorn\_values) | Helm values.yaml used for Longhorn |
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | The ID of the HCloud network. |
 | <a name="output_nginx_values"></a> [nginx\_values](#output\_nginx\_values) | Helm values.yaml used for nginx-ingress |

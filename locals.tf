@@ -160,6 +160,7 @@ locals {
         server_type : nodepool_obj.server_type,
         longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
         floating_ip : lookup(nodepool_obj, "floating_ip", false),
+        floating_ip_rdns : lookup(nodepool_obj, "floating_ip_rdns", false),
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
@@ -188,6 +189,7 @@ locals {
           server_type : nodepool_obj.server_type,
           longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
           floating_ip : lookup(nodepool_obj, "floating_ip", false),
+          floating_ip_rdns : lookup(nodepool_obj, "floating_ip_rdns", false),
           location : nodepool_obj.location,
           labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
           taints : concat(local.default_agent_taints, nodepool_obj.taints),
@@ -229,7 +231,7 @@ locals {
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
-  agent_count            = sum([for v in var.agent_nodepools : length(coalesce(v.nodes, {})) + coalesce(v.count, 0)])
+  agent_count            = length(var.agent_nodepools) > 0 ? sum([for v in var.agent_nodepools : length(coalesce(v.nodes, {})) + coalesce(v.count, 0)]) : 0
   autoscaler_max_count   = length(var.autoscaler_nodepools) > 0 ? sum([for v in var.autoscaler_nodepools : v.max_nodes]) : 0
   is_single_node_cluster = (local.control_plane_count + local.agent_count + local.autoscaler_max_count) == 1
 
@@ -661,8 +663,11 @@ service:
 ports:
   web:
 %{if var.traefik_redirect_to_https~}
-    redirectTo:
-      port: websecure
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
 %{endif~}
 %{if !local.using_klipper_lb~}
     proxyProtocol:
@@ -734,11 +739,11 @@ additionalArguments:
 %{if var.traefik_resource_limits~}
 resources:
   requests:
-    cpu: "100m"
-    memory: "50Mi"
+    cpu: "${var.traefik_resource_values.requests.cpu}"
+    memory: "${var.traefik_resource_values.requests.memory}"
   limits:
-    cpu: "300m"
-    memory: "150Mi"
+    cpu: "${var.traefik_resource_values.limits.cpu}"
+    memory: "${var.traefik_resource_values.limits.memory}"
 %{endif~}
 %{if var.traefik_autoscaling~}
 autoscaling:
@@ -857,7 +862,7 @@ cloudinit_write_files_common = <<EOT
     ip link set $INTERFACE name eth1
     ip link set eth1 up
     
-    # In case of a private only network, eth0 does not exists
+    # In case of a private-only network, eth0 may not exist
     if ip link show eth0 &>/dev/null; then
         eth0_connection=$(nmcli -g GENERAL.CONNECTION device show eth0)
         nmcli connection modify "$eth0_connection" \
@@ -865,10 +870,37 @@ cloudinit_write_files_common = <<EOT
           connection.interface-name eth0
     fi
 
-    eth1_connection=$(nmcli -g GENERAL.CONNECTION device show eth1)
-    nmcli connection modify "$eth1_connection" \
-      con-name eth1 \
-      connection.interface-name eth1
+    myrepeat () {
+        # Current time + 300 seconds (5 minutes)
+        local END_SECONDS=$((SECONDS + 300))
+        while true; do
+            >&2 echo "loop"
+            if (( SECONDS > END_SECONDS )); then
+                >&2 echo "timeout reached"
+                exit 1
+            fi
+            # Run command and check return code
+            if "$@"; then
+                >&2 echo "break"
+                break
+            else
+                >&2 echo "got failure exit code, repeating"
+                sleep 0.5
+            fi
+        done
+    }
+
+    myrename () {
+        local eth="$1"
+        local eth_connection
+        eth_connection=$(nmcli -g GENERAL.CONNECTION device show "$eth" || echo '')
+        nmcli connection modify "$eth_connection" \
+          con-name "$eth" \
+          connection.interface-name "$eth"
+    }
+
+    myrepeat myrename eth0
+    myrepeat myrename eth1
 
     systemctl restart NetworkManager
   permissions: "0744"
@@ -1024,11 +1056,6 @@ cloudinit_runcmd_common = <<EOT
 
 # Disable rebootmgr service as we use kured instead
 - [systemctl, disable, '--now', 'rebootmgr.service']
-
-%{if length(var.dns_servers) > 0}
-# Set the dns manually
-- [systemctl, 'reload', 'NetworkManager']
-%{endif}
 
 # Bounds the amount of logs that can survive on the system
 - [sed, '-i', 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]

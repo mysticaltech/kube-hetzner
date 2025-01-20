@@ -88,7 +88,7 @@ module "kube-hetzner" {
   # The service CIDR must be a part of the network CIDR!
   # service_ipv4_cidr = "10.43.0.0/16"
 
-  # If you must change the service IPv4 address of core-dns you can do so below, but it is highly advisd against.
+  # If you must change the service IPv4 address of core-dns you can do so below, but it is highly advised against.
   # Never change this value after you already initialized a cluster. Complete cluster redeploy needed!
   # The service IPv4 address must be part of the service CIDR!
   # cluster_dns_ipv4 = "10.43.0.10"
@@ -245,6 +245,9 @@ module "kube-hetzner" {
         "node.kubernetes.io/role=egress:NoSchedule"
       ],
       floating_ip = true
+      # Optionally associate a reverse DNS entry with the floating IP(s).
+      # This is useful in combination with the Egress Gateway feature for hosting certain services in the cluster, such as email servers.
+      # floating_ip_rns = "my.domain.com"
       count = 1
     },
     # Arm based nodes
@@ -565,6 +568,12 @@ module "kube-hetzner" {
   # enable_metrics_server = false
 
   # If you want to enable the k3s built-in local-storage controller set this to "true". Default is "false".
+  # Warning: When enabled together with the Hetzner CSI, there will be two default storage classes: "local-path" and "hcloud-volumes"!
+  #   Even if patched to remove the "default" label, the local-path storage class will be reset as default on each reboot of
+  #   the node where the controller runs.
+  #   This is not a problem if you explicitly define which storageclass to use in your PVCs.
+  #   Workaround if you don't want two default storage classes: leave this to false and add the local-path-provisioner helm chart 
+  #   as an extra (https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#adding-extras).
   # enable_local_storage = false
 
   # If you want to allow non-control-plane workloads to run on the control-plane nodes, set this to "true". The default is "false".
@@ -1146,7 +1155,7 @@ terraform {
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.43.0"
+      version = ">= 1.49.1"
     }
   }
 }
